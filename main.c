@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define BUFF 4096
 #define STRBUFF 1024
@@ -101,6 +102,38 @@ struct ytree *new_tree() {
 	return t;
 }
 
+void search_tree(struct ytree *cur, char *query) {
+	int i,j;
+    char *qval;
+    if (query[0] == '.') { 
+        query++;
+        for (i=0;query[0] != '.' || query[0] != '\n' || query[0] != '\0'; query++, i++){
+                if (!(query[0] >= 'A') && !(query [0] <= 'Z') || !(query[0] >= '-') && !(query [0] <= '9') || !(query[0] >= 'a') && !(query [0] <= 'z') || query[0] != '_' || query[0] == '/')
+                    return 1;
+                qval[i] = query[0];
+        }
+    }
+    qval[i] = '\0';
+    if (qval[0] == '\0')
+	while(1) {
+	  	if (cur == NULL) break;
+		if (cur->object->union_type == 0) {
+			printf("%s : %s\n", cur->key, cur->object->value->cval);
+		}
+		else if (cur->object->union_type == 1) {
+			printf("%s :\n", cur->key);
+			search_tree(cur->object->value->yval->head, query);
+		}
+		else if (cur->object->union_type == 2){
+			printf("%s : | \n", cur->key);
+            for(i=0;cur->object->value->aval[i] !=NULL; i++) {
+//				for (j=0; j < cur_ind + stat_ind; j++) printf(" ");
+//                    printf("- %s\n",cur->object->value->aval[i]);
+			}
+		}
+	}
+}
+
 void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 	struct tree_iter *yiter;
 	struct ytree *cur;
@@ -121,7 +154,7 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 		else if (cur->object->union_type == 2){
 			if (cur_ind > 0) for (i=0; i < cur_ind; i++) printf(" ");
 			printf("%s : | \n", cur->key);
-		        for(i=0;cur->object->value->aval[i] !=NULL; i++) {
+            for(i=0;cur->object->value->aval[i] !=NULL; i++) {
 				for (j=0; j < cur_ind + stat_ind; j++) printf(" ");
 				printf("- %s\n",cur->object->value->aval[i]);
 			}
@@ -287,35 +320,47 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 
 int main(int argc, char **argv){
 	FILE *fptr;
-	char line[BUFF];
-	fptr = fopen(argv[1], "r");
+	char line[BUFF], *flag, *list[BUFF];
 	struct tree_list *ylist = new_tree_list();
 	struct tree_iter yiter;
 	struct tree_iter *file_iter;
 	bool embedded = false;
 	fpos_t  pos;
 	static int stat_ind = 4;
-	int catch = 0;
+	int catch = 0, j=0;
+    argc--;
+    argv++;
+
+    for (int i=0;i<argc;i++) {
+           flag = argv[i]; 
+           if (flag[0] == '-'){
+               printf("flag\n"); 
+           }
+           else {
+                list[j] = flag;
+                j++;
+           }
+    }
+    if (j > 2) {
+        printf("exited\n");
+            return 1;
+    }
+
+	fptr = fopen(list[1], "r");
+
 	if (fptr == NULL){
 		fptr = tmpfile();
-//		write(0, "tt",2);
-//		if (c='\n'){ 
-//			freopen("/dev/null", "r", stdin);
-//			printf("i failed\n");
-//		}
-		while(fgets(line,BUFF, stdin)) {
-			printf("line is: %s",line);
-			if (line[0] == '\n')
-				break;
-			fputs(line, fptr);
-		}	
-		rewind(fptr);
-		if(NULL == fgets(line, BUFF, fptr))  {
-			printf("please select a file\n");
-			return 1;
-		}
-		rewind(fptr);
-	}
+        if (!isatty(fileno(stdin)))
+            while(fgets(line,BUFF, stdin)) {
+                fputs(line, fptr);
+            }	
+            rewind(fptr);
+            if(NULL == fgets(line, BUFF, fptr))  {
+                printf("please select a file\n");
+                return 1;
+            }
+            rewind(fptr);
+        }
 //	printf("before function\n");
 	catch = gen_tree(fptr, ylist, 0, embedded, &pos);
 	if (catch > 0) return catch;
