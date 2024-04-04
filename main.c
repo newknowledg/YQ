@@ -76,11 +76,6 @@ void tree_list_add( struct tree_list *self, struct ytree *node) {
 	else {
 		self->tail->next = node;
         tree_join(self->head, node);
-		cmp = self->tail->key;
-	/*	if (cmp[0] > node->key[0]) 
-			self->tail->right = node;
-		else
-			self->tail->left = node; */
 		node->prev = self->tail;
 	}
 	self->tail = node;
@@ -119,13 +114,10 @@ struct ytree *new_tree() {
 }
 
 struct ytree* search_tree(struct ytree *cur, char *query) {
-//    printf("inside search tree\n");
     if (strcmp(cur->key, query) == 0) {
         return cur;
     }
-//    printf("no match\n");
     if (cur->key[0] < query[0]) {
-  //      printf("test right node\n");
         if (cur->right)
             cur = search_tree(cur->right, query);
         else
@@ -133,7 +125,6 @@ struct ytree* search_tree(struct ytree *cur, char *query) {
         return cur;
     }
     else {
- //       printf("test left node\n");
         if (cur->left)
             cur = search_tree(cur->left, query);
         else
@@ -171,14 +162,14 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 }
 
 void analyze_tree(struct tree_list *ylist, char *query) {
-	int i,j;
-    char qval[STRBUFF];
+    char qval[STRBUFF], *a_end = '\0';
     struct ytree *cur = ylist->head;
+    int a_start = 0, i;
 //    printf("before while loop\n");
 	while(1) {
         if (query[0] == '.') { 
             query++;
-            for (i=0;query[0] != '.' && query[0] != '\n' && query[0] != '\0'; query++, i++){
+            for (i=0;query[0] != '.' && query[0] != '\n' && query[0] != '\0' && query[0] !='['; query++, i++){
  //               printf("cur char is %c\n", query[0]);
                     if (!(query[0] >= 'A') && !(query [0] <= 'Z') && !(query[0] >= '-') && !(query [0] <= '9') && !(query[0] >= 'a') && !(query [0] <= 'z') && query[0] != '_' || query[0] == '/')
                         return 1;
@@ -194,8 +185,57 @@ void analyze_tree(struct tree_list *ylist, char *query) {
            cur = search_tree(cur, qval); 
         }
 	  	if (cur == NULL) {
-            printf("query doesn't exist\n");
+            printf("key doesn't exist\n");
             break;
+        }
+        if (query[0] == '[') {
+            if (cur->object->union_type == 2) {
+                bool neg = false;
+                query++;
+                if (query[0] == '-' ) {
+                    neg = true;
+                    query++;
+                }
+                if (query[0] == '\0' || query[0] == '\n'){
+                    printf("Query is malformed\n");
+                    break;
+                }
+                if (query[0] >='0' && query[0] <= '9') {
+                    char numstr[STRBUFF];
+                    int numval, a_length = 0;
+                    for (i=0;query[0] >='0' && query[0] <= '9';query++)
+                        numstr[i] = query[0];
+                    numval = atoi(numstr);
+                    if (query[0] == '\0' || query[0] == '\n'){
+                        printf("Query is malformed\n");
+                        break;
+                    }
+                    if (query[0] == ']') {
+                        for(int j=0;cur->object->value->aval[j] !=NULL; j++) 
+                            a_length++;
+                        if (numval < a_length || neg && numval <= a_length){
+                            if (neg){
+                               numval = a_length  - numval; 
+                            }
+                            a_start = numval;
+                            if (cur->object->value->aval[numval+1])
+                                a_end = cur->object->value->aval[numval+1];
+                        }
+                        else {
+                            printf("Element is out of range\n");
+                            break;
+                        }
+                        query++;
+                    }
+                }
+                else if (query[0] == ']') {
+                    query++;
+                }
+            }
+            else {
+                printf("Value is not of type array");
+                break;
+            }
         }
 
         for (;query[0] == ' ' || query[0] == '\t'; query++) {}
@@ -213,9 +253,9 @@ void analyze_tree(struct tree_list *ylist, char *query) {
             else if (cur->object->union_type == 2){
                 printf("%s : | \n", cur->key);
                 int ind = 4;
-                for(i=0;cur->object->value->aval[i] !=NULL; i++) {
-    				for (j=0; j < ind; j++) printf(" ");
-                        printf("- %s\n",cur->object->value->aval[i]);
+                for(i=a_start;cur->object->value->aval[i] !=a_end; i++) {
+    				for (int j=0; j < ind; j++) printf(" ");
+                    printf("- %s\n",cur->object->value->aval[i]);
                 }
                 break;
             }
@@ -224,7 +264,7 @@ void analyze_tree(struct tree_list *ylist, char *query) {
             if (cur->object->union_type == 1)
                 analyze_tree(cur->object->value->yval, query);
             else {
-                printf("Value is not an embedded dict");
+                printf("Value is not an embedded dict\n");
             }
             break;
         }
@@ -277,7 +317,6 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 				exchange = malloc(sizeof(value));
 				strcpy(exchange,value);
 				arr[j] = exchange;
-				//object->object->value->aval[j] = exchange;
 //				printf("value stored : %s\n", arr[j]);
 				j++;
 
@@ -436,8 +475,8 @@ int main(int argc, char **argv){
 //	printf("before function\n");
 	catch = gen_tree(fptr, ylist, 0, embedded, &pos);
 	if (catch > 0) return catch;
+	free(fptr);
 //    printf("query is : %s\n", query);
     analyze_tree(ylist, query);
 //	print_tree(ylist, stat_ind,  0);
-	free(fptr);
 }
