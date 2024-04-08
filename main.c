@@ -317,7 +317,6 @@ void analyze_tree(struct tree_list *ylist, char *query) {
                             return 1;
                         }
                     }
-                    printf("create array loop\n");
                     cur->object->union_type = array;
                     cur->object->value->aval = arr;
                     qval[0] = '\0';
