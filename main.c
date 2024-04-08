@@ -282,7 +282,7 @@ void analyze_tree(struct tree_list *ylist, char *query) {
                     for (int j=0;query[0] != cmp; query++, j++) 
                         value[j] = query[0];
                     query++;
-                    if (cur->object->union_type == array && a_end) {
+                    if (cur->object->union_type == array && a_end || cur->object->union_type == array && a_start > 0) {
                         strcpy(cur->object->value->aval[a_start], value);
                     }
                     else {
