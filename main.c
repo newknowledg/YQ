@@ -179,7 +179,6 @@ void analyze_tree(struct tree_list *ylist, char *query) {
         }
         qval[i] = '\0';
         if (qval[0] == '\0' || qval[0] == '\n'){
-                printf("qval = 0");
                 print_tree(ylist, 4, 0);
                 break;
         }
