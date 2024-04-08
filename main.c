@@ -164,12 +164,13 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 void analyze_tree(struct tree_list *ylist, char *query) {
     char qval[STRBUFF], *a_end = '\0';
     struct ytree *cur = ylist->head;
-    int a_start = 0, i;
+    int a_start = 0, i = 0;
 //    printf("before while loop\n");
 	while(1) {
+        i = 0;
         if (query[0] == '.') { 
             query++;
-            for (i=0;query[0] != '.' && query[0] != '\n' && query[0] != '\0' && query[0] !='['; query++, i++){
+            for (i=0;query[0] != '.' && query[0] != '\n' && query[0] != '\0' && query[0] !='[' && query[0] != ' '; query++, i++){
  //               printf("cur char is %c\n", query[0]);
                     if (!(query[0] >= 'A') && !(query [0] <= 'Z') && !(query[0] >= '-') && !(query [0] <= '9') && !(query[0] >= 'a') && !(query [0] <= 'z') && query[0] != '_' || query[0] == '/')
                         return 1;
@@ -178,6 +179,7 @@ void analyze_tree(struct tree_list *ylist, char *query) {
         }
         qval[i] = '\0';
         if (qval[0] == '\0' || qval[0] == '\n'){
+                printf("qval = 0");
                 print_tree(ylist, 4, 0);
                 break;
         }
@@ -227,13 +229,21 @@ void analyze_tree(struct tree_list *ylist, char *query) {
                         }
                         query++;
                     }
+                    else{
+                        printf("Query is malformed\n");
+                        break;
+                    }
                 }
                 else if (query[0] == ']') {
                     query++;
                 }
+                else {
+                    printf("Query is malformed\n");
+                    break;
+                }
             }
             else {
-                printf("Value is not of type array");
+                printf("Value is not of type array\n");
                 break;
             }
         }
@@ -260,6 +270,66 @@ void analyze_tree(struct tree_list *ylist, char *query) {
                 break;
             }
         }
+
+        if (query[0] == '|') {
+            query++;
+            if (query[0] == '='){
+                char value[STRBUFF];
+                query++; 
+                for (;query[0] == ' ' || query[0] == '\t'; query++) {}
+                if (query[0] == '"' || query[0] == '\'') {
+                    char cmp = query[0];
+                    query++;
+                    for (int j=0;query[0] != cmp; query++, j++) 
+                        value[j] = query[0];
+                    query++;
+                    if (cur->object->union_type == array && a_end) {
+                        strcpy(cur->object->value->aval[a_start], value);
+                    }
+                    else {
+                        cur->object->union_type = string;
+                        strcpy(cur->object->value->cval, value);
+                    }
+                }
+                else if (query[0] = '[') {
+                    char *arr[STRBUFF];
+                    int pos = 0;
+                    query++;
+                    while (query[0] != ']') {
+                        if (query[0] == '\0') return 1;
+                        for (;query[0] == ' ' || query[0] == '\t'; query++) {}
+                        if (query[0] == '"' || query[0] == '\'') {
+                            char cmp = query[0];
+                            query++;
+                            for (int j=0;query[0] != cmp; query++, j++) 
+                                value[j] = query[0];
+                            char *exchange;
+                            query++;
+                            exchange = malloc(sizeof(value));
+                            strcpy(exchange,value);
+                            arr[pos] = exchange;
+                        }
+                        for (;query[0] == ' ' || query[0] == '\t'; query++) {}
+                        if (query[0] == ',') {
+                            pos++, query++;
+                        }
+                        else if (query[0] != ']'){
+                            printf("error\n");
+                            return 1;
+                        }
+                    }
+                    printf("create array loop\n");
+                    cur->object->union_type = array;
+                    cur->object->value->aval = arr;
+                    qval[0] = '\0';
+                }
+            }
+            else {
+                printf("Query is malformed\n");
+                break;
+            }
+        }
+
         if (query[0] == '.') {
             if (cur->object->union_type == 1)
                 analyze_tree(cur->object->value->yval, query);
