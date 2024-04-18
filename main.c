@@ -7,6 +7,7 @@
 #define BUFF 4096
 #define STRBUFF 1024
 bool printed = false;
+int def_ind = 2, color = 0;
 
 union union_value {
 	char *cval;
@@ -147,19 +148,19 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 	  	if (cur == NULL) break;
 		if (cur->object->union_type == 0) {
 			if (cur_ind > 0) for (i=0; i < cur_ind; i++) printf(" ");
-			printf("%s : %s", cur->key, cur->object->value->cval);
+			printf("\e[1;%dm%s :\e[0m %s", color, cur->key, cur->object->value->cval);
             char *n_test = cur->object->value->cval;
             if (n_test[strlen(n_test) - 1] != '\n')
                 printf("\n");                
 		}
 		else if (cur->object->union_type == 1) {
 			if (cur_ind > 0) for (i=0; i < cur_ind; i++) printf(" ");
-			printf("%s :\n", cur->key);
+			printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
 			print_tree(cur->object->value->yval, stat_ind, cur_ind + stat_ind);
 		}
 		else if (cur->object->union_type == 2){
 			if (cur_ind > 0) for (i=0; i < cur_ind; i++) printf(" ");
-			printf("%s :\n", cur->key);
+			printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
             for(i=0;cur->object->value->aval[i] !=NULL; i++) {
 				for (j=0; j < cur_ind + stat_ind; j++) printf(" ");
 				printf("- %s",cur->object->value->aval[i]);
@@ -169,8 +170,9 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
 			}
 		}
         else if (cur->object->union_type == 3){
-            printf("%s :\n", cur->key);
-            int ind = 4;
+			if (cur_ind > 0) for (i=0; i < cur_ind; i++) printf(" ");
+            printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
+            //int ind = 4;
             for(i=0;cur->object->value->yaval[i] !=NULL; i++) {
                 for (int j=0; j < cur_ind + stat_ind; j++) printf(" ");
                 printf("- \n");
@@ -214,7 +216,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
         }
         qval[i] = '\0';
         if (qval[0] == '\0' || qval[0] == '\n'){
-                print_tree(ylist, 4, 0);
+                print_tree(ylist, def_ind, 0);
                 printed = true;
                 return NULL;
         }
@@ -306,7 +308,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
 
         if (query[0] == '\0' || query[0] == '\n') {
             if (cur->object->union_type == 0) {
-                printf("%s : %s", cur->key, cur->object->value->cval);
+                printf("\e[%dm%s :\e[0m %s", color, cur->key, cur->object->value->cval);
                 char *n_test = cur->object->value->cval;
                 if (n_test[strlen(n_test) - 1] != '\n')
                     printf("\n");                
@@ -314,28 +316,28 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                 break;
             }
             else if (cur->object->union_type == 1) {
-                printf("%s :\n", cur->key);
-                print_tree(cur->object->value->yval, 4, 4);
+                printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
+                print_tree(cur->object->value->yval, def_ind, def_ind);
                 printed = true;
                 break;
             }
             else if (cur->object->union_type == 2){
-                printf("%s :\n", cur->key);
-                int ind = 4;
+                printf("\e[1;%d%s :\e[0m\n", color, cur->key);
+                //int ind = 4;
                 for(i=a_start;cur->object->value->aval[i] != a_end; i++) {
-    				for (int j=0; j < ind; j++) printf(" ");
+    				for (int j=0; j < def_ind; j++) printf(" ");
                     printf("- %s\n",cur->object->value->aval[i]);
                 }
                 printed = true;
                 break;
             }
             else if (cur->object->union_type == 3){
-                printf("%s :\n", cur->key);
-                int ind = 4;
+                printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
+                //int ind = 4;
                 for(i=a_start;cur->object->value->yaval[i] != ya_end; i++) {
-    				for (int j=0; j < ind; j++) printf(" ");
+    				for (int j=0; j < def_ind; j++) printf(" ");
                     printf("- \n");
-                    print_tree(cur->object->value->yaval[i], 4, 4 + 2);
+                    print_tree(cur->object->value->yaval[i], def_ind, def_ind + 2);
                 }
                 printed = true;
                 break;
@@ -445,7 +447,7 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 		if (file[0] == '#') for (;file[0] != '\n'; file++){}
 		if (file[0] == '\n') continue;
 		if (inArr == true) {
-			if (cur_ind < new_ind) {
+			if (cur_ind < new_ind || file[0] != '-' && cur_ind == new_ind) {
                if (file[0] == '-' || emptyArr == true) {
 				printf("Incorrect YAML format top\n");
 				return 1;
@@ -455,6 +457,7 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
                    object->object->value->aval = arr;
                }
                else if (aType == yArr) {
+//                   printf("key = %s\n", key);
                    object->object->union_type = y_array;
                    object->object->value->yaval = y_arr;
                }
@@ -482,7 +485,7 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
                 }
                 else {
                     file++;
-                    // printf("y_array\n");
+//                    printf("key = %s\n", key);
                     for (;file[0] == ' ' || file[0] == '\t'; file++, i++) {} 
                 }
                 if (file[0] == '|') {
@@ -618,7 +621,19 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 					printf("this is not correct YAML2\n");
 					return 1;
 				}
-				       	fgetpos(fptr,pos);
+                fgetpos(fptr,pos);
+                if (fgets(file, BUFF, fptr) == NULL){
+                   if (aType == Arr) {
+                       object->object->union_type = array;
+                       object->object->value->aval = arr;
+                   }
+                   else if (aType == yArr) {
+                       object->object->union_type = y_array;
+                       object->object->value->yaval = y_arr;
+                   }
+                   ylist->append(ylist, object);
+                }
+                fsetpos(fptr,pos);
 				continue;
 			}
 			else {
@@ -629,10 +644,10 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 		}
 		new_ind = ind;
 		object = new_tree();
-		if (cur_ind > ind && embedded == false) {
+/*		if (cur_ind < ind && embedded == false) {
 			printf("Incorrect formating\n");
 			break;
-		}
+		} */
 		if (cur_ind <= ind && embedded == true) {
 //			printf("exit new tree\n");
 			break;
@@ -664,7 +679,7 @@ int gen_tree(FILE *fptr, struct tree_list *ylist, int ind, bool embedded, fpos_t
 		if (file[0] == '#') for (;file[0] != '\n'; file++){}
 		
 		if (file[0] == '\n') {
-//			printf("new tree, ind = %d\n", cur_ind);
+//			printf("new tree, ind = %d key = %s\n", cur_ind, key);
             fpos_t t_pos;
             fgetpos(fptr, &t_pos);
             fgets(file, BUFF, fptr);
@@ -802,7 +817,32 @@ int main(int argc, char **argv){
     for (int i=0;i<argc;i++) {
            flag = argv[i]; 
            if (flag[0] == '-'){
-               printf("flag\n"); 
+               flag++;
+               for (int j = 0; flag[j] != '\0'; j++) {
+                   switch (flag[j]) {
+                    case 'c':
+                        color = 32;
+                        break;
+                    case 'i':
+                        char *c_ind;
+                        c_ind = argv[++i];
+                        if (c_ind == NULL) {
+                            printf("Only integers allowed\n");
+                            return 1;
+                        }
+                        int k = 0;
+                        char numstr[STRBUFF];
+                        for (k=0;c_ind[0] >='0' && c_ind[0] <= '9';c_ind++, k++)
+                            numstr[k] = c_ind[0];
+                        if (c_ind[0] != '\0') {
+                            printf("Only integers allowed\n");
+                            return 1;
+                        }
+                        numstr[k] = '\0';
+                        def_ind = atoi(numstr);
+                        break;
+                   }
+               }
            }
            else {
                 list[j] = flag;
@@ -831,7 +871,7 @@ int main(int argc, char **argv){
             }
             rewind(fptr);
         }
-//	printf("before function\n");
+//	printf("\e[%dmbefore function\e[0m\n", 31);
 	catch = gen_tree(fptr, ylist, 0, embedded, &pos);
 	if (catch > 0) return catch;
 	free(fptr);
