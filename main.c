@@ -256,7 +256,12 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                                 a_length++;
                             if (numval < a_length || neg && numval <= a_length){
                                 if (neg){
-                                   numval = a_length  - numval; 
+                                   if (numval > 0) 
+                                       numval = a_length  - numval;
+                                    else {
+                                        printf("Element is out of range\n");
+                                        return NULL; 
+                                    }
                                 }
                                 a_start = numval;
                                 if (cur->object->value->aval[numval+1])
@@ -273,7 +278,12 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                                 a_length++;
                             if (numval < a_length || neg && numval <= a_length){
                                 if (neg){
-                                   numval = a_length  - numval; 
+                                   if (numval > 0) 
+                                       numval = a_length  - numval;
+                                    else {
+                                        printf("Element is out of range\n");
+                                        return NULL; 
+                                    }
                                 }
                                 a_start = numval;
                                 if (cur->object->value->yaval[numval+1])
