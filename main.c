@@ -334,7 +334,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                 break;
             }
             else if (cur->object->union_type == 2){
-                printf("\e[1;%d%s :\e[0m\n", color, cur->key);
+                printf("\e[1;%dm%s :\e[0m\n", color, cur->key);
                 //int ind = 4;
                 for(i=a_start;cur->object->value->aval[i] != a_end; i++) {
     				for (int j=0; j < def_ind; j++) printf(" ");
