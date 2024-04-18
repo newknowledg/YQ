@@ -328,7 +328,10 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                 //int ind = 4;
                 for(i=a_start;cur->object->value->aval[i] != a_end; i++) {
     				for (int j=0; j < def_ind; j++) printf(" ");
-                    printf("- %s\n",cur->object->value->aval[i]);
+                    printf("- %s",cur->object->value->aval[i]);
+                    char *n_test = cur->object->value->aval[i];
+                    if (n_test[strlen(n_test) - 1] != '\n')
+                        printf("\n");                
                 }
                 printed = true;
                 break;
