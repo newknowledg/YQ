@@ -188,9 +188,10 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
     struct tree_list *ya_end;
     struct ytree *cur = ylist->head;
     int a_start = 0, i = 0;
+    bool y_ap;
 //    printf("before while loop\n");
 	while(1) {
-        i = 0, a_start = 0, a_end = '\0', ya_end = NULL;
+        i = 0, a_start = 0, a_end = '\0', ya_end = NULL, y_ap = false;
         if (query[0] == ')' && embedded) {
             query++;
             for (;query[0] == ' ' || query[0] == '\t'; query++) {}
@@ -277,6 +278,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                                 a_start = numval;
                                 if (cur->object->value->yaval[numval+1])
                                     ya_end = cur->object->value->yaval[numval+1];
+                                y_ap = true;
                             }
                             else {
                                 printf("Element is out of range\n");
@@ -413,7 +415,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                 if (query == NULL)
                     return NULL;
             }
-            else if (cur->object->union_type == 3 && ya_end != NULL) {
+            else if (cur->object->union_type == 3 && y_ap == true) {
                 query = analyze_tree(cur->object->value->yaval[a_start], query, true);
                 if (query == NULL)
                     return NULL;
@@ -878,6 +880,5 @@ int main(int argc, char **argv){
 //    printf("query is : %s\n", query);
     analyze_tree(ylist, query, false);
     free(ylist);
-    exit:
 //	print_tree(ylist, stat_ind,  0);
 }
