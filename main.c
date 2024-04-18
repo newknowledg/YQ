@@ -243,7 +243,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                 if (query[0] >='0' && query[0] <= '9') {
                     char numstr[STRBUFF];
                     int numval, a_length = 0;
-                    for (i=0;query[0] >='0' && query[0] <= '9';query++)
+                    for (i=0;query[0] >='0' && query[0] <= '9';query++,i++)
                         numstr[i] = query[0];
                     numval = atoi(numstr);
                     if (query[0] == '\0' || query[0] == '\n'){
