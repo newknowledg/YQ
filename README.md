@@ -1,9 +1,12 @@
 # YQ
 
 yq is a yaml parser modeled after the jq parser.
+
 yq has limited yaml compatiblity. yq is designed to run only one yaml config at a time
-for this reason the startin and ending of the yaml body ... and --- are not supported.
+for this reason the starting and ending of the yaml body ... and --- are not supported.
+
 yq has been tested with AWS Cloudformation and Ansible config files.
+
 yq currently does not support the Fn:: varaible replacement logic of Cloudformation.yg
 
 ## Installation
