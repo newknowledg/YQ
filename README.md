@@ -23,7 +23,6 @@ run gcc main.c -o yq
 ### examples
 
 YAML Body
---- 
     key : value
     nested : 
         key : value
@@ -39,7 +38,7 @@ YAML Body
         - array_key: value
           nested_array:
             key : value
-
+---
 
     ./yq . example.yaml
 prints out the the entire yaml body
