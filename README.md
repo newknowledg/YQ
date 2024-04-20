@@ -20,7 +20,7 @@ run gcc main.c -o yq
 
 -c       Highlights keys
 
-### examples
+## examples
 
 YAML Body
 
