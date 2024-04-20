@@ -39,17 +39,24 @@ YAML Body
         - array_key: value
           nested_array:
             key : value
-
+---
 ./yq . example.yaml
+
 prints out the the entire yaml body
 
+---
 ./yq .nested.key example.yaml
+
 prints the key and value of the element selected
 
+---
 ./yq ".key | = 'new value'"
+
 replaces the value of the selected key and prints out the entire yaml body with the new value
 
+---
 ./yq "(.key | = 'new value') (.array[0] | ='new element')"  example.yaml
+
 brackets allow to perform multiple actions in the same query
 
 ## ToDo
