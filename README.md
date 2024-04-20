@@ -39,7 +39,6 @@ YAML Body
         - array_key: value
           nested_array:
             key : value
-...
 
 ./yq . example.yaml
 prints out the the entire yaml body
