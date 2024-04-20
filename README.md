@@ -15,7 +15,7 @@ run gcc main.c -o yq
 
 ## How to use
 
-./yq <query> <file/path>
+    ./yq <query> <file/path>
 
 ### Flags
 
