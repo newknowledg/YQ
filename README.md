@@ -17,13 +17,15 @@ run gcc main.c -o yq
 
 ./yq <query> <file/path>
 
-### flags
+### Flags
 
--i <int> Set indentation
+    -i <int>
+Set indentation
 
--c       Highlights keys
+    -c
+Highlights keys
 
-## examples
+## Examples
 
 YAML Body
 
