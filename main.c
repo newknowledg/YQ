@@ -40,12 +40,52 @@ struct tree_list {
 	void (*append)(struct tree_list *self, struct ytree *object);
 };
 
+void del_tree_list (struct tree_list *self) {
+    struct ytree *cur, *next;
+    cur = self->head;
+    while(cur) {
+        next = cur->next;
+        free(cur->key);
+		if (cur->object->union_type == 0) {
+            free(cur->object->value->cval);
+            free(cur->object->value);
+            free(cur->object);
+	//		printf("\e[1;%dm%s :\e[0m %s", color, cur->key, cur->object->value->cval);
+		}
+		else if (cur->object->union_type == 1) {
+            del_tree_list(cur->object->value->yval);
+            free(cur->object->value);
+            free(cur->object);
+	//		print_tree(cur->object->value->yval, stat_ind, cur_ind + stat_ind);
+		}
+		else if (cur->object->union_type == 2){
+            for(int i=0;cur->object->value->aval[i] !=NULL; i++) {
+                free(cur->object->value->aval[i]);
+            }
+            free(cur->object->value->aval);
+            free(cur->object->value);
+            free(cur->object);
+		}
+        else if (cur->object->union_type == 3){
+            for(int i=0;cur->object->value->yaval[i] !=NULL; i++) {
+            del_tree_list(cur->object->value->yaval[i]);
+            }
+            free(cur->object->value->yaval);
+            free(cur->object->value);
+            free(cur->object);
+        }
+        cur = next;
+	}
+    free(self);
+};
+
 struct tree_iter {
 	struct ytree *current;
 	struct ytree *previous;
 	struct ytree* (*next)(struct tree_iter* self);
 	void (*prev)(struct tree_iter* self);
 };
+
 
 struct ytree* tree_iterNext (struct tree_iter *self) {
 	struct ytree *retval;
@@ -181,6 +221,7 @@ void print_tree(struct tree_list *ylist, int stat_ind, int cur_ind) {
         }
 	}
     printed = true;
+    free(yiter);
 }
 
 char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
@@ -820,8 +861,6 @@ int main(int argc, char **argv){
 	FILE *fptr;
 	char line[BUFF], *flag, *list[BUFF];
 	struct tree_list *ylist = new_tree_list();
-	struct tree_iter yiter;
-	struct tree_iter *file_iter;
 	bool embedded = false;
 	fpos_t  pos;
 	static int stat_ind = 4;
@@ -892,6 +931,6 @@ int main(int argc, char **argv){
 	free(fptr);
 //    printf("query is : %s\n", query);
     analyze_tree(ylist, query, false);
-    free(ylist);
+    del_tree_list(ylist);
 //	print_tree(ylist, stat_ind,  0);
 }
