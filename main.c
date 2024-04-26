@@ -225,7 +225,7 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
            cur = search_tree(cur, qval); 
         }
 	  	if (cur == NULL) {
-            printf("key doesn't exist\n");
+            printf("null\n");
             return NULL;
         }
         if (query[0] == '[') {
