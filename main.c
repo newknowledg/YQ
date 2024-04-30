@@ -40,41 +40,41 @@ struct tree_list {
 	void (*append)(struct tree_list *self, struct ytree *object);
 };
 
+void del_object (struct tree_val *object);
+
 void del_tree_list (struct tree_list *self) {
     struct ytree *cur, *next;
     cur = self->head;
     while(cur) {
         next = cur->next;
         free(cur->key);
-		if (cur->object->union_type == 0) {
-            free(cur->object->value->cval);
-            free(cur->object->value);
-            free(cur->object);
-		}
-		else if (cur->object->union_type == 1) {
-            del_tree_list(cur->object->value->yval);
-            free(cur->object->value);
-            free(cur->object);
-		}
-		else if (cur->object->union_type == 2){
-            for(int i=0;cur->object->value->aval[i] !=NULL; i++) {
-                free(cur->object->value->aval[i]);
-            }
-            free(cur->object->value->aval);
-            free(cur->object->value);
-            free(cur->object);
-		}
-        else if (cur->object->union_type == 3){
-            for(int i=0;cur->object->value->yaval[i] !=NULL; i++) {
-            del_tree_list(cur->object->value->yaval[i]);
-            }
-            free(cur->object->value->yaval);
-            free(cur->object->value);
-            free(cur->object);
-        }
+        del_object(cur->object);
+        free(cur->object->value);
+        free(cur->object);
+        free(cur);
         cur = next;
 	}
     free(self);
+};
+
+void del_object (struct tree_val *object) {
+    if (object->union_type == 0) {
+        free(object->value->cval);
+    }
+    else if (object->union_type == 1) {
+        del_tree_list(object->value->yval);
+    }
+    else if (object->union_type == 2){
+        for(int i=0;object->value->aval[i] !=NULL; i++) {
+            free(object->value->aval[i]);
+        }
+    }
+    else if (object->union_type == 3){
+        for(int i=0;object->value->yaval[i] !=NULL; i++) {
+        del_tree_list(object->value->yaval[i]);
+        }
+        free(object->value->yaval);
+    }
 };
 
 struct tree_iter {
@@ -411,8 +411,12 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                         strcpy(cur->object->value->aval[a_start], value);
                     }
                     else {
+                        char *exchange;
+                        del_object(cur->object);
                         cur->object->union_type = string;
-                        strcpy(cur->object->value->cval, value);
+                        exchange = malloc(sizeof(value));
+                        strcpy(exchange,value);
+                        cur->object->value->cval = exchange;
                     }
                 }
                 else if (query[0] = '[') {
@@ -443,9 +447,9 @@ char* analyze_tree(struct tree_list *ylist, char *query, bool embedded) {
                         }
                     }
                     query++;
+                    del_object(cur->object);
                     cur->object->union_type = array;
                     cur->object->value->aval = arr;
-                    printf("c = %c\n", query[0]);
                 }
                 if (embedded && query[0] != ')')
                     return query;
